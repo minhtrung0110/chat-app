@@ -4,11 +4,7 @@ import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { PrismaClientExceptionFilter } from 'nestjs-prisma';
 import { AppModule } from './app.module';
-import type {
-  CorsConfig,
-  NestConfig,
-  SwaggerConfig,
-} from './common/configs/config.interface';
+import type { CorsConfig, NestConfig, SwaggerConfig } from './common/configs/config.interface';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
