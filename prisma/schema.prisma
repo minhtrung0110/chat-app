@@ -11,15 +11,25 @@ generator client {
 generator dbml {
   provider = "prisma-dbml-generator"
 }
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BANNED
+  DELETED
+  PENDING
+}
+
 model User {
   id                   String                    @id @default(uuid()) @db.Uuid
-  fullname             String?
+  firstname            String?
+  lastname             String?
   username             String                    @unique
   email                String                    @unique
   phone                String?                   @unique
-  passwordHash         String?
+  password             String?
   avatarUrl            String?
-  createdAt            DateTime                  @default(now())
+  status               UserStatus                @default(ACTIVE)
   createdConversations Conversation[]            @relation("CreatedConversations")
   authProviders        AuthProvider[]
   participants         ConversationParticipant[]
@@ -27,6 +37,31 @@ model User {
   statuses             MessageStatus[]
   mentions             MessageMention[]          @relation("MentionedUser")
   emotions             MessageEmotion[]
+
+  roles UserRole[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model Role {
+  id          String  @id @default(uuid()) @db.Uuid
+  name        String  @unique
+  description String?
+
+  users UserRole[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UserRole {
+  id     String @id @default(uuid()) @db.Uuid
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @db.Uuid
+  role   Role   @relation(fields: [roleId], references: [id])
+  roleId String @db.Uuid
+
+  assignedAt DateTime @default(now())
 }
 
 model AuthProvider {
@@ -37,7 +72,8 @@ model AuthProvider {
   providerUserId String
   accessToken    String?
   refreshToken   String?
-  connectedAt    DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@unique([provider, providerUserId])
 }
@@ -48,9 +84,10 @@ model Conversation {
   isGroup      Boolean                   @default(false)
   createdById  String?                   @db.Uuid
   createdBy    User?                     @relation("CreatedConversations", fields: [createdById], references: [id])
-  createdAt    DateTime                  @default(now())
   participants ConversationParticipant[]
   messages     Message[]
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
 }
 
 model ConversationParticipant {
@@ -60,7 +97,8 @@ model ConversationParticipant {
   user           User         @relation(fields: [userId], references: [id])
   userId         String       @db.Uuid
   role           String       @default("member")
-  joinedAt       DateTime     @default(now())
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   @@unique([conversationId, userId])
 }
@@ -78,10 +116,11 @@ model Message {
   replies        Message[]        @relation("MessageReplies") // 👈 back-relation ở đây
   isDeleted      Boolean          @default(false)
   isRecalled     Boolean          @default(false)
-  createdAt      DateTime         @default(now())
   statuses       MessageStatus[]
   mentions       MessageMention[]
   emotions       MessageEmotion[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 }
 
 model MessageStatus {
@@ -91,17 +130,20 @@ model MessageStatus {
   user      User     @relation(fields: [userId], references: [id])
   userId    String   @db.Uuid
   status    String   @default("delivered")
-  updatedAt DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([messageId, userId])
 }
 
 model MessageMention {
-  id              String  @id @default(uuid()) @db.Uuid
-  message         Message @relation(fields: [messageId], references: [id])
-  messageId       String  @db.Uuid
-  mentionedUser   User    @relation("MentionedUser", fields: [mentionedUserId], references: [id])
-  mentionedUserId String  @db.Uuid
+  id              String   @id @default(uuid()) @db.Uuid
+  message         Message  @relation(fields: [messageId], references: [id])
+  messageId       String   @db.Uuid
+  mentionedUser   User     @relation("MentionedUser", fields: [mentionedUserId], references: [id])
+  mentionedUserId String   @db.Uuid
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model MessageEmotion {
@@ -111,7 +153,8 @@ model MessageEmotion {
   user      User     @relation(fields: [userId], references: [id])
   userId    String   @db.Uuid
   emoji     String
-  reactedAt DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([messageId, userId, emoji])
 }

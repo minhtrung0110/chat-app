@@ -1,38 +1,42 @@
-import 'reflect-metadata';
-import {
-  ObjectType,
-  registerEnumType,
-  HideField,
-  Field,
-} from '@nestjs/graphql';
-import { IsEmail } from 'class-validator';
-import { Post } from '../../posts/models/post.model';
-import { BaseModel } from '../../common/models/base.model';
-import { Role } from '@prisma/client';
-
-registerEnumType(Role, {
-  name: 'Role',
-  description: 'User role',
-});
+import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { UserStatus } from '../../common/enums/user-status.enum';
 
 @ObjectType()
-export class User extends BaseModel {
-  @Field()
-  @IsEmail()
-  email: string;
+export class User {
+  @Field(() => ID)
+  id: string;
 
-  @Field(() => String, { nullable: true })
+  @Field({ nullable: true })
   firstname?: string;
 
-  @Field(() => String, { nullable: true })
+  @Field({ nullable: true })
   lastname?: string;
 
-  @Field(() => Role)
-  role: Role;
+  @Field()
+  username: string;
 
-  @Field(() => [Post], { nullable: true })
-  posts?: [Post] | null;
+  @Field()
+  email: string;
 
-  @HideField()
+  @Field()
   password: string;
+
+  @Field({ nullable: true })
+  phone?: string;
+
+  @Field({ nullable: true })
+  avatarUrl?: string;
+
+  @Field(() => UserStatus)
+  status: UserStatus;
+
+  @Field()
+  createdAt: Date;
+
+  @Field()
+  updatedAt: Date;
+
+  // Tùy chọn mở rộng: Nếu muốn trả về roles, conversations, v.v.
+  // @Field(() => [RoleModel], { nullable: true })
+  // roles?: RoleModel[];
 }

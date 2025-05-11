@@ -5,14 +5,13 @@ import { loggingMiddleware, PrismaModule } from 'nestjs-prisma';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AppResolver } from './app.resolver';
-import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
-import { PostsModule } from './posts/posts.module';
 import config from './common/configs/config';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { GqlConfigService } from './gql-config.service';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { AntiSpamMiddleware } from './common/middleware/anti-spam.middleware';
+import { winstonConfig } from './common/logger/winston.config';
+import { WinstonModule } from 'nest-winston';
 
 @Module({
   imports: [
@@ -29,15 +28,11 @@ import { AntiSpamMiddleware } from './common/middleware/anti-spam.middleware';
         ],
       },
     }),
-
+    WinstonModule.forRoot(winstonConfig), // custom style logger
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
       useClass: GqlConfigService,
     }),
-
-    AuthModule,
-    UsersModule,
-    PostsModule,
   ],
   controllers: [AppController],
   providers: [AppService, AppResolver],

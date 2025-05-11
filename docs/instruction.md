@@ -87,3 +87,19 @@ forRootAsync() dùng khi cần config động hoặc async.
 isGlobal: true giúp dùng toàn cục, không cần import lại module.
 
 Ngoài ConfigModule, nhiều module khác trong NestJS cũng dùng forRoot/Async để cấu hình tùy chỉnh (GraphQLModule, MailerModule, JwtModule, v.v.).
+
+#### Cấu Trúc Chi Tiết Từng Feature
+
+##### DTO (Data Transfer Object)
+
+- Dùng để nhận dữ liệu từ client (request body, params) hoặc trả dữ liệu ra ngoài (response).
+
+- Dùng kèm với class-validator để kiểm tra dữ liệu.
+
+##### Model (đúng hơn: GraphQL Object Type / View Model) – nằm trong models/
+
+- Là định nghĩa đầu ra của API, thường dùng với @ObjectType() trong GraphQL.
+
+- Có thể khớp 1 phần với DTO, nhưng tách riêng để bạn kiểm soát những gì client thấy.
+
+

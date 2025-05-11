@@ -11,6 +11,7 @@ async function bootstrap() {
 
   // Validation
   app.useGlobalPipes(new ValidationPipe());
+  app.setGlobalPrefix('api/v1');
 
   // enable shutdown hook
   app.enableShutdownHooks();
@@ -33,7 +34,7 @@ async function bootstrap() {
       .build();
     const document = SwaggerModule.createDocument(app, options);
 
-    SwaggerModule.setup(swaggerConfig.path || 'api', app, document);
+    SwaggerModule.setup('api/docs', app, document);
   }
 
   // Cors

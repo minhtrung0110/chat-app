@@ -1,10 +1,9 @@
 import { PrismaService } from 'nestjs-prisma';
-import { Prisma, User } from '@prisma/client';
 import {
-  Injectable,
-  NotFoundException,
   BadRequestException,
   ConflictException,
+  Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -13,6 +12,7 @@ import { PasswordService } from './password.service';
 import { SignupInput } from './dto/signup.input';
 import { Token } from './models/token.model';
 import { SecurityConfig } from '../common/configs/config.interface';
+import { User } from '../users/models/user.model';
 
 @Injectable()
 export class AuthService {
@@ -24,9 +24,7 @@ export class AuthService {
   ) {}
 
   async createUser(payload: SignupInput): Promise<Token> {
-    const hashedPassword = await this.passwordService.hashPassword(
-      payload.password,
-    );
+    const hashedPassword = await this.passwordService.hashPassword(payload.password);
 
     try {
       const user = await this.prisma.user.create({
@@ -41,10 +39,7 @@ export class AuthService {
         userId: user.id,
       });
     } catch (e) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2002'
-      ) {
+      if (e.code === 'P2002') {
         throw new ConflictException(`Email ${payload.email} already used.`);
       }
       throw new Error(e);
@@ -58,10 +53,7 @@ export class AuthService {
       throw new NotFoundException(`No user found for email: ${email}`);
     }
 
-    const passwordValid = await this.passwordService.validatePassword(
-      password,
-      user.password,
-    );
+    const passwordValid = await this.passwordService.validatePassword(password, user.password);
 
     if (!passwordValid) {
       throw new BadRequestException('Invalid password');
@@ -88,18 +80,6 @@ export class AuthService {
     };
   }
 
-  private generateAccessToken(payload: { userId: string }): string {
-    return this.jwtService.sign(payload);
-  }
-
-  private generateRefreshToken(payload: { userId: string }): string {
-    const securityConfig = this.configService.get<SecurityConfig>('security');
-    return this.jwtService.sign(payload, {
-      secret: this.configService.get('JWT_REFRESH_SECRET'),
-      expiresIn: securityConfig.refreshIn,
-    });
-  }
-
   refreshToken(token: string) {
     try {
       const { userId } = this.jwtService.verify(token, {
@@ -112,5 +92,17 @@ export class AuthService {
     } catch (e) {
       throw new UnauthorizedException();
     }
+  }
+
+  private generateAccessToken(payload: { userId: string }): string {
+    return this.jwtService.sign(payload);
+  }
+
+  private generateRefreshToken(payload: { userId: string }): string {
+    const securityConfig = this.configService.get<SecurityConfig>('security');
+    return this.jwtService.sign(payload, {
+      secret: this.configService.get('JWT_REFRESH_SECRET'),
+      expiresIn: securityConfig.refreshIn,
+    });
   }
 }
