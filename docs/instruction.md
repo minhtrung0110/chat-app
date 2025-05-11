@@ -65,8 +65,25 @@ AppModule là module gốc chứa toàn bộ ứng dụng
 | `controllers` | Nhận request từ client (HTTP, GraphQL, v.v.)          | Khi xử lý HTTP request                         |
 | `providers`   | Logic xử lý phía sau: service, resolver, guard        | Khi cần xử lý logic/phục vụ controller         |
 
+
+###### Import
+- Là cách bạn import các module con (module khác) mà module hiện tại sẽ sử dụng.
+
+- Khi một module được import, nó có thể chia sẻ services, controllers, providers, v.v. với module hiện tại.
+
+- Nếu PrismaModule được đánh dấu là isGlobal: true, thì các module khác không cần import lại, vẫn dùng được.
+
 ##### 3. Tổng luồng logic ứng dụng:
 ```
 Client → Controller (hoặc Resolver) → Provider (Service) → Truy vấn DB (Prisma)
 ```
 
+ConfigModule giúp load .env và inject biến môi trường dễ dàng.
+
+forRoot() dùng khi config tĩnh.
+
+forRootAsync() dùng khi cần config động hoặc async.
+
+isGlobal: true giúp dùng toàn cục, không cần import lại module.
+
+Ngoài ConfigModule, nhiều module khác trong NestJS cũng dùng forRoot/Async để cấu hình tùy chỉnh (GraphQLModule, MailerModule, JwtModule, v.v.).

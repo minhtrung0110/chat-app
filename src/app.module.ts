@@ -1,7 +1,7 @@
 import { GraphQLModule } from '@nestjs/graphql';
-import { Logger, Module } from '@nestjs/common';
+import { Logger, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { PrismaModule, loggingMiddleware } from 'nestjs-prisma';
+import { loggingMiddleware, PrismaModule } from 'nestjs-prisma';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AppResolver } from './app.resolver';
@@ -11,6 +11,8 @@ import { PostsModule } from './posts/posts.module';
 import config from './common/configs/config';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { GqlConfigService } from './gql-config.service';
+import { LoggerMiddleware } from './common/middleware/logger.middleware';
+import { AntiSpamMiddleware } from './common/middleware/anti-spam.middleware';
 
 @Module({
   imports: [
@@ -40,4 +42,8 @@ import { GqlConfigService } from './gql-config.service';
   controllers: [AppController],
   providers: [AppService, AppResolver],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware, AntiSpamMiddleware).forRoutes('*'); // Có thể chỉ định controller cụ thể thay vì '*'
+  }
+}
