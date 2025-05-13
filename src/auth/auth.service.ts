@@ -31,7 +31,7 @@ export class AuthService {
         data: {
           ...payload,
           password: hashedPassword,
-          role: 'USER',
+          //  role: 'USER',
         },
       });
 
