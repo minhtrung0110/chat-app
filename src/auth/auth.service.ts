@@ -16,12 +16,14 @@ import { User } from '../users/models/user.model';
 import { toGraphQLUser } from '../common/mapper/user.mapper';
 import { JwtDto } from './dto/jwt.dto';
 import { UserStatus } from '../common/enums/user-status.enum';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
+    private readonly userService: UsersService,
     private readonly passwordService: PasswordService,
     private readonly configService: ConfigService,
   ) {}
@@ -127,6 +129,45 @@ export class AuthService {
     } catch (e) {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
+  }
+
+  async validateOrCreateGoogleUser(googleUser: {
+    googleId: string;
+    email: string;
+    username: string;
+    avatar: string;
+  }) {
+    // 1. Tìm user theo googleId hoặc email
+    let user = await this.prisma.user.findFirst({
+      where: {
+        OR: [{ googleId: googleUser.googleId }, { email: googleUser.email }],
+      },
+    });
+
+    // 2. Nếu chưa có, tạo mới user (không cần password!)
+    if (!user) {
+      try {
+        console.log('Check Input', googleUser);
+        user = await this.userService.createUser({
+          googleId: googleUser.googleId,
+          email: googleUser.email,
+          username: googleUser.username,
+          avatarUrl: googleUser.avatar,
+          // Các trường khác nếu cần
+        });
+      } catch (e) {
+        console.log('Err:', e);
+        throw new ConflictException('Could not create Google user!');
+      }
+    }
+
+    // 3. Sinh JWT trả về
+    const payload = {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+    };
+    return this.generateTokens(payload);
   }
 
   private generateAccessToken(payload: { userId: string }): string {

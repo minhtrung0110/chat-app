@@ -71,6 +71,7 @@ type User {
   createdAt: DateTime!
   email: String!
   firstname: String
+  googleId: String
   id: ID!
   lastname: String
   password: String!

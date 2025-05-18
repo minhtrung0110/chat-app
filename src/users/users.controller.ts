@@ -5,7 +5,9 @@ import { ChangePasswordInput } from './dto/change-password.input';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { User } from './models/user.model';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Users')
 @Controller('users')
 @UseGuards(JwtAuthGuard)
 export class UserController {

@@ -20,7 +20,8 @@ export class User {
 
   @Field()
   password: string;
-
+  @Field()
+  googleId?: string;
   @Field({ nullable: true })
   phone?: string;
 

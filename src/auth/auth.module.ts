@@ -10,6 +10,8 @@ import { AuthResolver } from './auth.resolver';
 import { SecurityConfig } from '../common/configs/config.interface';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { AuthController } from './auth.controller';
+import { GoogleStrategy } from './strategy/google.strategy';
+import { UsersService } from '../users/users.service';
 
 @Module({
   imports: [
@@ -28,7 +30,15 @@ import { AuthController } from './auth.controller';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, AuthResolver, JwtStrategy, GqlAuthGuard, PasswordService],
+  providers: [
+    AuthService,
+    AuthResolver,
+    JwtStrategy,
+    GoogleStrategy,
+    GqlAuthGuard,
+    PasswordService,
+    UsersService,
+  ],
   exports: [GqlAuthGuard],
 })
 export class AuthModule {}

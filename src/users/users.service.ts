@@ -30,10 +30,15 @@ export class UsersService {
   // Tạo mới user (basic, bạn có thể bổ sung validate/email unique...)
   async createUser(data: any) {
     // Nếu có password, hash password
-    if (data.password) {
-      data.password = await this.passwordService.hashPassword(data.password);
+    console.log('Check Input Create User', data);
+    try {
+      if (data.password) {
+        data.password = await this.passwordService.hashPassword(data.password);
+      }
+      return this.prisma.user.create({ data });
+    } catch (err) {
+      console.log('Cannot create user', err);
     }
-    return this.prisma.user.create({ data });
   }
 
   // Cập nhật user

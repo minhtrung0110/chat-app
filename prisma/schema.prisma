@@ -24,6 +24,7 @@ model User {
   email                String                    @unique
   phone                String?                   @unique
   password             String?
+  googleId             String?                   @unique
   avatarUrl            String?
   status               UserStatus                @default(ACTIVE)
   createdConversations Conversation[]            @relation("CreatedConversations")
