@@ -19,7 +19,7 @@ async function bootstrap() {
   // Prisma Client Exception Filter for unhandled exceptions
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter));
-
+  //app.useGlobalInterceptors(new ApiResponseInterceptor());
   const configService = app.get(ConfigService);
   const nestConfig = configService.get<NestConfig>('nest');
   const corsConfig = configService.get<CorsConfig>('cors');

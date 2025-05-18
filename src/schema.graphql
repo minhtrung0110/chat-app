@@ -16,11 +16,6 @@ input ChangePasswordInput {
   oldPassword: String!
 }
 
-input CreatePostInput {
-  content: String!
-  title: String!
-}
-
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
@@ -38,70 +33,16 @@ input LoginInput {
 
 type Mutation {
   changePassword(data: ChangePasswordInput!): User!
-  createPost(data: CreatePostInput!): Post!
   login(data: LoginInput!): Auth!
   refreshToken(token: JWT!): Token!
   signup(data: SignupInput!): Auth!
   updateUser(data: UpdateUserInput!): User!
 }
 
-"""
-Possible directions in which to order a list of items when provided an `orderBy` argument.
-"""
-enum OrderDirection {
-  asc
-  desc
-}
-
-type PageInfo {
-  endCursor: String
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: String
-}
-
-type Post {
-  author: User
-  content: String
-
-  """Identifies the date and time when the object was created."""
-  createdAt: DateTime!
-  id: ID!
-  published: Boolean!
-  title: String!
-
-  """Identifies the date and time when the object was last updated."""
-  updatedAt: DateTime!
-}
-
-type PostConnection {
-  edges: [PostEdge!]
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type PostEdge {
-  cursor: String!
-  node: Post!
-}
-
-input PostOrder {
-  direction: OrderDirection!
-}
-
 type Query {
   hello(name: String!): String!
   helloWorld: String!
   me: User!
-  post: Post!
-  publishedPosts(orderBy: PostOrder, query: String): PostConnection!
-  userPosts: [Post!]!
-}
-
-"""User role"""
-enum Role {
-  ADMIN
-  USER
 }
 
 input SignupInput {
@@ -109,10 +50,7 @@ input SignupInput {
   firstname: String
   lastname: String
   password: String!
-}
-
-type Subscription {
-  postCreated: Post!
+  username: String!
 }
 
 type Token {
@@ -129,15 +67,24 @@ input UpdateUserInput {
 }
 
 type User {
-  """Identifies the date and time when the object was created."""
+  avatarUrl: String
   createdAt: DateTime!
   email: String!
   firstname: String
   id: ID!
   lastname: String
-  posts: [Post!]
-  role: Role!
-
-  """Identifies the date and time when the object was last updated."""
+  password: String!
+  phone: String
+  status: UserStatus!
   updatedAt: DateTime!
+  username: String!
+}
+
+"""Trạng thái của người dùng trong hệ thống"""
+enum UserStatus {
+  ACTIVE
+  BANNED
+  DELETED
+  INACTIVE
+  PENDING
 }

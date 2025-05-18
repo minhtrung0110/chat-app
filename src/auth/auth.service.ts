@@ -13,6 +13,9 @@ import { SignupInput } from './dto/signup.input';
 import { Token } from './models/token.model';
 import { SecurityConfig } from '../common/configs/config.interface';
 import { User } from '../users/models/user.model';
+import { toGraphQLUser } from '../common/mapper/user.mapper';
+import { JwtDto } from './dto/jwt.dto';
+import { UserStatus } from '../common/enums/user-status.enum';
 
 @Injectable()
 export class AuthService {
@@ -31,12 +34,13 @@ export class AuthService {
         data: {
           ...payload,
           password: hashedPassword,
-          //  role: 'USER',
         },
       });
 
       return this.generateTokens({
-        userId: user.id,
+        id: user.id,
+        email: user.email,
+        username: user.username,
       });
     } catch (e) {
       if (e.code === 'P2002') {
@@ -60,37 +64,68 @@ export class AuthService {
     }
 
     return this.generateTokens({
-      userId: user.id,
+      id: user.id,
+      email: user.email,
+      username: user.username,
     });
   }
 
-  validateUser(userId: string): Promise<User> {
-    return this.prisma.user.findUnique({ where: { id: userId } });
+  async validateUser(userId: string): Promise<User> {
+    const prismaUser = await this.prisma.user.findUnique({ where: { id: userId } });
+    return toGraphQLUser(prismaUser);
   }
 
-  getUserFromToken(token: string): Promise<User> {
+  async getUserFromToken(token: string): Promise<User> {
     const id = this.jwtService.decode(token)['userId'];
-    return this.prisma.user.findUnique({ where: { id } });
+    const prismaUser = await this.prisma.user.findUnique({ where: { id } });
+    return toGraphQLUser(prismaUser);
   }
 
-  generateTokens(payload: { userId: string }): Token {
+  generateTokens(user: { id: string; email: string; username: string }): Token {
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      username: user.username,
+    };
     return {
-      accessToken: this.generateAccessToken(payload),
-      refreshToken: this.generateRefreshToken(payload),
+      accessToken: this.jwtService.sign(payload),
+      refreshToken: this.jwtService.sign(payload, { expiresIn: '7d' }), // ví dụ
     };
   }
 
-  refreshToken(token: string) {
+  async refreshToken(token: string) {
     try {
-      const { userId } = this.jwtService.verify(token, {
+      // 1. Verify refresh token
+      const payload: JwtDto = this.jwtService.verify(token, {
         secret: this.configService.get('JWT_REFRESH_SECRET'),
       });
 
+      // 2. Check user tồn tại và không bị khóa
+      const user = await this.prisma.user.findUnique({
+        where: { id: payload.sub },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          status: true,
+        },
+      });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      if (user.status === UserStatus.ACTIVE) {
+        throw new UnauthorizedException('User has been banned');
+      }
+
+      // 3. Sinh lại accessToken/refreshToken mới từ data user thật trong DB
       return this.generateTokens({
-        userId,
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        // role: user.role,
       });
     } catch (e) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Invalid or expired refresh token');
     }
   }
 

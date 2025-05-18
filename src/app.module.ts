@@ -12,6 +12,8 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { AntiSpamMiddleware } from './common/middleware/anti-spam.middleware';
 import { winstonConfig } from './common/logger/winston.config';
 import { WinstonModule } from 'nest-winston';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -33,6 +35,8 @@ import { WinstonModule } from 'nest-winston';
       driver: ApolloDriver,
       useClass: GqlConfigService,
     }),
+    AuthModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService, AppResolver],

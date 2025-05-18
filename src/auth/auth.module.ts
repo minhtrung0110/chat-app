@@ -6,8 +6,10 @@ import { PasswordService } from './password.service';
 import { GqlAuthGuard } from './gql-auth.guard';
 import { AuthService } from './auth.service';
 import { AuthResolver } from './auth.resolver';
-import { JwtStrategy } from './jwt.strategy';
+
 import { SecurityConfig } from '../common/configs/config.interface';
+import { JwtStrategy } from './strategy/jwt.strategy';
+import { AuthController } from './auth.controller';
 
 @Module({
   imports: [
@@ -25,13 +27,8 @@ import { SecurityConfig } from '../common/configs/config.interface';
       inject: [ConfigService],
     }),
   ],
-  providers: [
-    AuthService,
-    AuthResolver,
-    JwtStrategy,
-    GqlAuthGuard,
-    PasswordService,
-  ],
+  controllers: [AuthController],
+  providers: [AuthService, AuthResolver, JwtStrategy, GqlAuthGuard, PasswordService],
   exports: [GqlAuthGuard],
 })
 export class AuthModule {}
