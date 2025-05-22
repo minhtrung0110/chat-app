@@ -5,5 +5,6 @@ import { PrismaService } from 'nestjs-prisma';
 
 @Module({
   providers: [ChatGateway, ChatService, PrismaService],
+  exports: [ChatService],
 })
 export class ChatModule {}
