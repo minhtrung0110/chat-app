@@ -23,14 +23,27 @@ export class ChatGateway {
 
   // Lắng nghe sự kiện client gửi message
   @SubscribeMessage('send_message')
-  handleMessage(
-    @MessageBody() data: { room: string; message: string; sender: string },
+  async handleMessage(
+    @MessageBody() data: { room: string; message: string; sender: string; receiver: string },
     @ConnectedSocket() client: Socket,
   ) {
-    console.log('Nhận send_message:', data); // THÊM DÒNG NÀYc
+    // Tìm hoặc tạo conversation giữa sender và receiver
+    const conversation = await this.chatService.findOrCreatePrivateConversation(
+      data.sender,
+      data.receiver,
+    );
+
+    // Lưu message vào DB
+    await this.chatService.saveMessage(conversation.id, data.sender, data.message);
+
     // Gửi lại cho tất cả client trong phòng (room)
-    this.server.to(data.room).emit('receive_message', data);
-    // Có thể xử lý thêm (ví dụ lưu vào DB nếu muốn)
+    this.server.to(data.room).emit('receive_message', {
+      room: data.room,
+      message: data.message,
+      sender: data.sender,
+      createdAt: new Date().toISOString(),
+    });
+
     return { status: 'ok' };
   }
 
